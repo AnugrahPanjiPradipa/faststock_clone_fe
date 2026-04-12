@@ -79,10 +79,6 @@ export default function ItemList({ onActivitySuccess, refreshTrigger }) {
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     try {
-      const formData = new FormData();
-      formData.append("name", editName);
-      formData.append("addStockGudang", addStockGudang);
-
       const payload = {
       name: editName.name,
       stockGudang: Number(addStockGudang.stockGudang),
