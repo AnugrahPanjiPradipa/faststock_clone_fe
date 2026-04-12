@@ -39,11 +39,10 @@ export default function ItemForm({ onSuccess, onActivitySuccess }) {
       return;
     }
 
-    // KIRIM SEBAGAI JSON (Hapus semua logika FormData)
     const payload = {
       name: form.name,
       stockGudang: Number(form.stockGudang),
-      asal: selectedGerai, // Ini harus masuk ke req.body.asal di backend
+      asal: selectedGerai, 
     };
 
     try {

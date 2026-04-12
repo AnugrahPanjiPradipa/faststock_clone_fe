@@ -7,11 +7,12 @@ export default function ItemList({ onActivitySuccess, refreshTrigger }) {
   const [items, setItems] = useState([]);
   const [editItem, setEditItem] = useState(null);
   const [editName, setEditName] = useState("");
-  const [editImage, setEditImage] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [addStockGudang, setAddStockGudang] = useState(0);
+  const [geraiList, setGeraiList] = useState([]);
+  const [selectedGerai, setSelectedGerai] = useState("");
 
   const itemsPerPage = 10;
 
@@ -46,6 +47,23 @@ export default function ItemList({ onActivitySuccess, refreshTrigger }) {
     fetchItems();
   }, [currentPage, searchTerm, refreshTrigger]);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      const response = await fetch(
+        "https://faststock-backend.vercel.app/api/gerai",
+      );
+      const result = await response.json();
+
+      setGeraiList(result);
+
+      if (result.length > 0) {
+        setSelectedGerai(result[0].gerai);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   const handleDelete = async (id) => {
     if (!confirm("Yakin ingin menghapus item ini?")) return;
     try {
@@ -63,22 +81,26 @@ export default function ItemList({ onActivitySuccess, refreshTrigger }) {
     try {
       const formData = new FormData();
       formData.append("name", editName);
-      if (editImage) formData.append("image", editImage);
       formData.append("addStockGudang", addStockGudang);
+
+      const payload = {
+      name: editName.name,
+      stockGudang: Number(addStockGudang.stockGudang),
+      asal: selectedGerai, 
+    };
 
       await axios.put(
         `https://faststock-backend.vercel.app/api/items/${editItem._id}`,
-        formData,
+        payload,
         {
-          headers: { "Content-Type": "multipart/form-data" },
+          headers: { "Content-Type": "application/json" },
         },
       );
 
       setEditItem(null);
       setEditName("");
-      setEditImage(null);
       setAddStockGudang(0);
-
+      setSelectedGerai("");
       onActivitySuccess?.();
     } catch (err) {
       console.error("Gagal update:", err);
@@ -122,7 +144,7 @@ export default function ItemList({ onActivitySuccess, refreshTrigger }) {
                   onClick={() => {
                     setEditItem(item);
                     setEditName(item.name);
-                    setEditImage(null);
+                    setSelectedGerai(item.gerai);
                   }}
                   className="bg-yellow-500 text-white px-2 py-1 rounded"
                 >
@@ -168,11 +190,6 @@ export default function ItemList({ onActivitySuccess, refreshTrigger }) {
               required
             />
             <input
-              type="file"
-              onChange={(e) => setEditImage(e.target.files[0])}
-              className="w-full mb-2"
-            />
-            <input
               type="number"
               min="0"
               value={addStockGudang}
@@ -180,7 +197,20 @@ export default function ItemList({ onActivitySuccess, refreshTrigger }) {
               className="w-full border px-2 py-1 rounded mb-2"
               placeholder="Tambah stok gudang"
             />
-            <div className="flex justify-end gap-2">
+            <select
+              id="gerai"
+              name="gerai"
+              value={selectedGerai}
+              className="w-full border p-2"
+              onChange={(e) => setSelectedGerai(e.target.value)}
+            >
+              {geraiList.map((item) => (
+                <option value={item.gerai} key={item.no}>
+                  {item.gerai}
+                </option>
+              ))}
+            </select>
+            <div className="flex justify-end gap-2 py-4">
               <button
                 type="button"
                 onClick={() => setEditItem(null)}
