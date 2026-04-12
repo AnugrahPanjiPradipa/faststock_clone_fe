@@ -81,7 +81,7 @@ export default function ItemList({ onActivitySuccess, refreshTrigger }) {
     try {
       const payload = {
       name: editName,
-      stockGudang: Number(addStockGudang),
+      addStockGudang: Number(addStockGudang),
       asal: selectedGerai, 
     };
 
@@ -140,7 +140,7 @@ export default function ItemList({ onActivitySuccess, refreshTrigger }) {
                   onClick={() => {
                     setEditItem(item);
                     setEditName(item.name);
-                    setSelectedGerai(item.gerai);
+                    setSelectedGerai(item.asal);
                   }}
                   className="bg-yellow-500 text-white px-2 py-1 rounded"
                 >

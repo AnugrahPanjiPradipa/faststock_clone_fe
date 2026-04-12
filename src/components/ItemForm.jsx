@@ -74,7 +74,7 @@ export default function ItemForm({ onSuccess, onActivitySuccess }) {
         type="text"
         name="name"
         placeholder="Nama item"
-        className="w-full border p-2 rounded-xl"
+        className="w-full border p-2"
         value={form.name}
         onChange={handleChange}
       />
@@ -82,7 +82,7 @@ export default function ItemForm({ onSuccess, onActivitySuccess }) {
         type="number"
         name="stockGudang"
         placeholder="Stok gudang"
-        className="w-full border p-2 rounded-xl"
+        className="w-full border p-2"
         value={form.stockGudang}
         onChange={handleChange}
       />
@@ -90,7 +90,7 @@ export default function ItemForm({ onSuccess, onActivitySuccess }) {
         id="gerai"
         name="gerai"
         value={selectedGerai}
-        className="w-full border p-2 rounded-xl"
+        className="w-full border p-2"
         onChange={(e) => setSelectedGerai(e.target.value)}
       >
         {geraiList.map((item) => (
