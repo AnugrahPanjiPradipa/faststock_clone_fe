@@ -80,8 +80,8 @@ export default function ItemList({ onActivitySuccess, refreshTrigger }) {
     e.preventDefault();
     try {
       const payload = {
-      name: editName.name,
-      stockGudang: Number(addStockGudang.stockGudang),
+      name: editName,
+      stockGudang: Number(addStockGudang),
       asal: selectedGerai, 
     };
 
