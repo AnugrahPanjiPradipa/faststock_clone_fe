@@ -1,31 +1,31 @@
-import { useState } from 'react';
-import axios from 'axios';
+import { useState } from "react";
+import axios from "axios";
 
 export default function PenjualanForm({ item, onSuccess, onActivitySuccess }) {
-  const [jumlah, setJumlah] = useState('');
+  const [jumlah, setJumlah] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!jumlah || jumlah <= 0) return alert('Jumlah harus lebih dari 0');
+    if (!jumlah || jumlah <= 0) return alert("Jumlah harus lebih dari 0");
 
     try {
-      await axios.put(`https://faststockbackend-production.up.railway.app/api/items/penjualan/${item._id}`, {
-        jumlah: parseInt(jumlah),
-      });
+      await axios.put(
+        `https://faststock-backend.vercel.app/api/items/penjualan/${item._id}`,
+        {
+          jumlah: parseInt(jumlah),
+        },
+      );
 
       onSuccess?.(); // 1️⃣ refresh stok (ItemList)
       onActivitySuccess?.(); // 2️⃣ refresh log (LogList)
-      setJumlah(''); // 3️⃣ reset form
+      setJumlah(""); // 3️⃣ reset form
     } catch (err) {
-      alert(err.response?.data?.error || 'Gagal melakukan penjualan');
+      alert(err.response?.data?.error || "Gagal melakukan penjualan");
     }
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="flex gap-2 mt-2"
-    >
+    <form onSubmit={handleSubmit} className="flex gap-2 mt-2">
       <input
         type="number"
         value={jumlah}

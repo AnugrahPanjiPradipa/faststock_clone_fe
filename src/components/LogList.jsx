@@ -1,26 +1,29 @@
-import { useEffect, useState } from 'react';
-import axios from 'axios';
-import dayjs from 'dayjs';
+import { useEffect, useState } from "react";
+import axios from "axios";
+import dayjs from "dayjs";
 
 export default function LogList({ refreshKey, onActivitySuccess }) {
   const [logs, setLogs] = useState([]);
-  const [tanggal, setTanggal] = useState(dayjs().format('YYYY-MM-DD'));
-  const [jenis, setJenis] = useState('all');
+  const [tanggal, setTanggal] = useState(dayjs().format("YYYY-MM-DD"));
+  const [jenis, setJenis] = useState("all");
   const [loading, setLoading] = useState(false);
 
   const [editLog, setEditLog] = useState(null);
   const [editJumlah, setEditJumlah] = useState(0);
-  const [editType, setEditType] = useState('input');
+  const [editType, setEditType] = useState("input");
 
   // 🔎 Tambah state untuk search
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
 
   const fetchLogs = async () => {
     try {
-      const res = await axios.get(`https://faststockbackend-production.up.railway.app/api/logs`, { params: { date: tanggal, type: jenis } });
+      const res = await axios.get(
+        `https://faststock-backend.vercel.app/api/logs`,
+        { params: { date: tanggal, type: jenis } },
+      );
       setLogs(Array.isArray(res.data) ? res.data : res.data.logs || []);
     } catch (err) {
-      console.error('Gagal mengambil data log:', err);
+      console.error("Gagal mengambil data log:", err);
       setLogs([]);
     }
   };
@@ -30,8 +33,8 @@ export default function LogList({ refreshKey, onActivitySuccess }) {
   }, [refreshKey, tanggal, jenis]);
 
   const handleExport = () => {
-    const url = `https://faststockbackend-production.up.railway.app/api/logs/export?date=${tanggal}&type=${jenis}`;
-    const link = document.createElement('a');
+    const url = `https://faststock-backend.vercel.app/api/logs/export?date=${tanggal}&type=${jenis}`;
+    const link = document.createElement("a");
     link.href = url;
     link.download = `log-${tanggal}-${jenis}.xlsx`;
     link.click();
@@ -42,25 +45,28 @@ export default function LogList({ refreshKey, onActivitySuccess }) {
 
     setLoading(true);
     try {
-      await axios.delete('https://faststockbackend-production.up.railway.app/api/logs', { data: { date: tanggal } });
+      await axios.delete("https://faststock-backend.vercel.app/api/logs", {
+        data: { date: tanggal },
+      });
       await fetchLogs();
       onActivitySuccess?.();
     } catch (err) {
-      alert('Gagal menghapus log');
+      alert("Gagal menghapus log");
       console.error(err);
     }
     setLoading(false);
   };
 
   const handleDeleteLog = async (id) => {
-    if (!confirm('Yakin ingin menghapus log ini? Stok akan dikembalikan.')) return;
+    if (!confirm("Yakin ingin menghapus log ini? Stok akan dikembalikan."))
+      return;
     try {
-      await axios.delete(`https://faststockbackend-production.up.railway.app/api/logs/${id}`);
+      await axios.delete(`https://faststock-backend.vercel.app/api/logs/${id}`);
       await fetchLogs();
       onActivitySuccess?.();
     } catch (err) {
-      console.error('Gagal menghapus log:', err);
-      alert('Terjadi kesalahan saat menghapus log.');
+      console.error("Gagal menghapus log:", err);
+      alert("Terjadi kesalahan saat menghapus log.");
     }
   };
 
@@ -74,24 +80,29 @@ export default function LogList({ refreshKey, onActivitySuccess }) {
     if (!editLog) return;
 
     try {
-      await axios.put(`https://faststockbackend-production.up.railway.app/api/logs/${editLog._id}`, {
-        itemId: editLog.itemId,
-        itemName: editLog.itemName,
-        type: editType,
-        jumlah: Number(editJumlah),
-      });
+      await axios.put(
+        `https://faststock-backend.vercel.app/api/logs/${editLog._id}`,
+        {
+          itemId: editLog.itemId,
+          itemName: editLog.itemName,
+          type: editType,
+          jumlah: Number(editJumlah),
+        },
+      );
 
       setEditLog(null);
       await fetchLogs();
       onActivitySuccess?.();
     } catch (err) {
-      console.error('Gagal mengupdate log:', err);
-      alert('Terjadi kesalahan saat mengedit log.');
+      console.error("Gagal mengupdate log:", err);
+      alert("Terjadi kesalahan saat mengedit log.");
     }
   };
 
   // 🔎 Filter logs sesuai searchTerm
-  const filteredLogs = logs.filter((log) => log.itemName?.toLowerCase().includes(searchTerm.toLowerCase()));
+  const filteredLogs = logs.filter((log) =>
+    log.itemName?.toLowerCase().includes(searchTerm.toLowerCase()),
+  );
 
   return (
     <div className="p-2 sm:p-4">
@@ -137,7 +148,7 @@ export default function LogList({ refreshKey, onActivitySuccess }) {
           disabled={loading}
           className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 w-full sm:w-auto"
         >
-          {loading ? 'Menghapus...' : 'Hapus Log Tanggal Ini'}
+          {loading ? "Menghapus..." : "Hapus Log Tanggal Ini"}
         </button>
       </div>
 
@@ -160,6 +171,7 @@ export default function LogList({ refreshKey, onActivitySuccess }) {
               <th className="p-2">Waktu</th>
               <th className="p-2">Item</th>
               <th className="p-2">Jenis</th>
+              <th className="p-2">Asal</th>
               <th className="p-2">Jumlah</th>
               <th className="p-2">Aksi</th>
             </tr>
@@ -167,22 +179,19 @@ export default function LogList({ refreshKey, onActivitySuccess }) {
           <tbody>
             {filteredLogs.length === 0 ? (
               <tr>
-                <td
-                  colSpan="5"
-                  className="text-center p-4 text-gray-500"
-                >
+                <td colSpan="5" className="text-center p-4 text-gray-500">
                   Tidak ada log
                 </td>
               </tr>
             ) : (
               filteredLogs.map((log) => (
-                <tr
-                  key={log._id}
-                  className="border-t"
-                >
-                  <td className="p-2 whitespace-nowrap">{dayjs(log.createdAt).format('YYYY-MM-DD HH:mm')}</td>
+                <tr key={log._id} className="border-t">
+                  <td className="p-2 whitespace-nowrap">
+                    {dayjs(log.createdAt).format("YYYY-MM-DD HH:mm")}
+                  </td>
                   <td className="p-2">{log.itemName}</td>
                   <td className="p-2 capitalize">{log.type}</td>
+                  <td className="p-2 capitalize">{log.asal}</td>
                   <td className="p-2">{log.jumlah}</td>
                   <td className="p-2 flex gap-2">
                     <button
@@ -216,8 +225,12 @@ export default function LogList({ refreshKey, onActivitySuccess }) {
               className="bg-white border rounded-lg p-3 shadow-sm"
             >
               <div className="flex justify-between items-center mb-2">
-                <span className="text-xs text-gray-500">{dayjs(log.createdAt).format('HH:mm, DD MMM YYYY')}</span>
-                <span className="capitalize text-sm font-medium text-gray-700">{log.type}</span>
+                <span className="text-xs text-gray-500">
+                  {dayjs(log.createdAt).format("HH:mm, DD MMM YYYY")}
+                </span>
+                <span className="capitalize text-sm font-medium text-gray-700">
+                  {log.type}
+                </span>
               </div>
               <div className="mb-2">
                 <p className="font-semibold">{log.itemName}</p>

@@ -1,53 +1,81 @@
-import { useRef, useState } from 'react';
-import axios from 'axios';
+import { useEffect, useState } from "react";
+import axios from "axios";
 
 export default function ItemForm({ onSuccess, onActivitySuccess }) {
   const [form, setForm] = useState({
-    name: '',
+    name: "",
     stockGudang: 0,
   });
+
+  const [geraiList, setGeraiList] = useState([]);
+  const [selectedGerai, setSelectedGerai] = useState("");
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const fileInputRef = useRef(null);
+  useEffect(() => {
+    const fetchData = async () => {
+      const response = await fetch(
+        "https://faststock-backend.vercel.app/api/gerai",
+      );
+      const result = await response.json();
+
+      setGeraiList(result);
+
+      if (result.length > 0) {
+        setSelectedGerai(result[0].gerai);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const formData = new FormData();
-    formData.append('name', form.name);
-    formData.append('stockGudang', form.stockGudang);
+    if (!selectedGerai) {
+      alert("Data gerai belum dimuat, silakan tunggu sebentar atau refresh.");
+      return;
+    }
+
+    // KIRIM SEBAGAI JSON (Hapus semua logika FormData)
+    const payload = {
+      name: form.name,
+      stockGudang: Number(form.stockGudang),
+      asal: selectedGerai, // Ini harus masuk ke req.body.asal di backend
+    };
 
     try {
-      await axios.post('https://faststockbackend-production.up.railway.app/api/items', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      setForm({ name: '', stockGudang: 0 });
-      if (fileInputRef.current) {
-        fileInputRef.current.value = ''; // ⬅️ kosongkan input file
-      }
+      await axios.post(
+        "https://faststock-backend.vercel.app/api/items",
+        payload,
+        {
+          headers: { "Content-Type": "application/json" }, // Pastikan header ini ada
+        },
+      );
 
-      // refresh list item + log
+      setForm({ name: "", stockGudang: 0 });
       onActivitySuccess?.();
       onSuccess?.();
+      alert("Berhasil simpan ke database!");
     } catch (err) {
-      console.error('Gagal tambah item', err);
+      console.error("Detail Error:", err.response?.data || err.message);
+      alert("Gagal simpan ke database!");
     }
   };
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-4 bg-white p-4 shadow rounded max-w-md mx-auto mt-6"
+      className="space-y-4 bg-white p-4 shadow rounded max-w-md mx-auto mt-6 flex flex-col"
     >
       <h2 className="text-xl font-bold">Tambah Item Gudang</h2>
       <input
         type="text"
         name="name"
         placeholder="Nama item"
-        className="w-full border p-2"
+        className="w-full border p-2 rounded-xl"
         value={form.name}
         onChange={handleChange}
       />
@@ -55,10 +83,23 @@ export default function ItemForm({ onSuccess, onActivitySuccess }) {
         type="number"
         name="stockGudang"
         placeholder="Stok gudang"
-        className="w-full border p-2"
+        className="w-full border p-2 rounded-xl"
         value={form.stockGudang}
         onChange={handleChange}
       />
+      <select
+        id="gerai"
+        name="gerai"
+        value={selectedGerai}
+        className="w-full border p-2 rounded-xl"
+        onChange={(e) => setSelectedGerai(e.target.value)}
+      >
+        {geraiList.map((item) => (
+          <option value={item.gerai} key={item.no}>
+            {item.gerai}
+          </option>
+        ))}
+      </select>
       <button
         type="submit"
         className="bg-blue-500 text-white px-4 py-2 rounded"

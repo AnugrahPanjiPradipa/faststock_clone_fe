@@ -1,14 +1,14 @@
-import axios from 'axios';
-import { useEffect, useState } from 'react';
-import MutasiForm from './MutasiForm';
-import PenjualanForm from './PenjualanForm';
+import axios from "axios";
+import { useEffect, useState } from "react";
+import MutasiForm from "./MutasiForm";
+import PenjualanForm from "./PenjualanForm";
 
 export default function ItemList({ onActivitySuccess, refreshTrigger }) {
   const [items, setItems] = useState([]);
   const [editItem, setEditItem] = useState(null);
-  const [editName, setEditName] = useState('');
+  const [editName, setEditName] = useState("");
   const [editImage, setEditImage] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [addStockGudang, setAddStockGudang] = useState(0);
@@ -17,13 +17,16 @@ export default function ItemList({ onActivitySuccess, refreshTrigger }) {
 
   const fetchItems = async () => {
     try {
-      const res = await axios.get('https://faststockbackend-production.up.railway.app/api/items', {
-        params: {
-          page: currentPage,
-          limit: itemsPerPage,
-          search: searchTerm,
+      const res = await axios.get(
+        "https://faststock-backend.vercel.app/api/items",
+        {
+          params: {
+            page: currentPage,
+            limit: itemsPerPage,
+            search: searchTerm,
+          },
         },
-      });
+      );
 
       // ⬅️ Kalau di page sekarang kosong tapi masih ada page sebelumnya
       if (res.data.items.length === 0 && currentPage > 1) {
@@ -34,7 +37,7 @@ export default function ItemList({ onActivitySuccess, refreshTrigger }) {
       setItems(res.data.items);
       setTotalPages(res.data.totalPages);
     } catch (err) {
-      console.error('Gagal mengambil data:', err);
+      console.error("Gagal mengambil data:", err);
     }
   };
 
@@ -44,12 +47,14 @@ export default function ItemList({ onActivitySuccess, refreshTrigger }) {
   }, [currentPage, searchTerm, refreshTrigger]);
 
   const handleDelete = async (id) => {
-    if (!confirm('Yakin ingin menghapus item ini?')) return;
+    if (!confirm("Yakin ingin menghapus item ini?")) return;
     try {
-      await axios.delete(`https://faststockbackend-production.up.railway.app/api/items/${id}`);
+      await axios.delete(
+        `https://faststock-backend.vercel.app/api/items/${id}`,
+      );
       onActivitySuccess?.(); // 🔹 trigger parent refresh ItemList + LogList
     } catch (error) {
-      console.error('Gagal menghapus item:', error);
+      console.error("Gagal menghapus item:", error);
     }
   };
 
@@ -57,22 +62,26 @@ export default function ItemList({ onActivitySuccess, refreshTrigger }) {
     e.preventDefault();
     try {
       const formData = new FormData();
-      formData.append('name', editName);
-      if (editImage) formData.append('image', editImage);
-      formData.append('addStockGudang', addStockGudang);
+      formData.append("name", editName);
+      if (editImage) formData.append("image", editImage);
+      formData.append("addStockGudang", addStockGudang);
 
-      await axios.put(`https://faststockbackend-production.up.railway.app/api/items/${editItem._id}`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      await axios.put(
+        `https://faststock-backend.vercel.app/api/items/${editItem._id}`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        },
+      );
 
       setEditItem(null);
-      setEditName('');
+      setEditName("");
       setEditImage(null);
       setAddStockGudang(0);
 
       onActivitySuccess?.();
     } catch (err) {
-      console.error('Gagal update:', err);
+      console.error("Gagal update:", err);
     }
   };
 
@@ -103,10 +112,7 @@ export default function ItemList({ onActivitySuccess, refreshTrigger }) {
         {items
           .filter((item) => item.stockGudang > 0 || item.stockEtalase > 0)
           .map((item) => (
-            <div
-              key={item._id}
-              className="border p-4 rounded shadow"
-            >
+            <div key={item._id} className="border p-4 rounded shadow">
               <h2 className="text-xl font-bold">{item.name}</h2>
               <p className="mt-2 text-sm">Stok Gudang: {item.stockGudang}</p>
               <p className="text-sm">Stok Etalase: {item.stockEtalase}</p>
@@ -131,17 +137,18 @@ export default function ItemList({ onActivitySuccess, refreshTrigger }) {
               </div>
 
               {/* Mutasi & Penjualan */}
-              <MutasiForm
-                item={item}
-                onActivitySuccess={onActivitySuccess}
-              />
+              <MutasiForm item={item} onActivitySuccess={onActivitySuccess} />
               <PenjualanForm
                 item={item}
                 onActivitySuccess={onActivitySuccess}
               />
             </div>
           ))}
-        {items.length === 0 && <p className="text-center text-gray-500 col-span-full">Tidak ada obat ditemukan.</p>}
+        {items.length === 0 && (
+          <p className="text-center text-gray-500 col-span-full">
+            Tidak ada obat ditemukan.
+          </p>
+        )}
       </div>
 
       {/* Edit Modal */}
@@ -208,7 +215,7 @@ export default function ItemList({ onActivitySuccess, refreshTrigger }) {
               <button
                 key={index}
                 onClick={() => goToPage(index + 1)}
-                className={`px-3 py-1 border rounded whitespace-nowrap ${currentPage === index + 1 ? 'bg-blue-500 text-white' : ''}`}
+                className={`px-3 py-1 border rounded whitespace-nowrap ${currentPage === index + 1 ? "bg-blue-500 text-white" : ""}`}
               >
                 {index + 1}
               </button>
