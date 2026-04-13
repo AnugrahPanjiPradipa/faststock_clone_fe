@@ -234,6 +234,7 @@ export default function LogList({ refreshKey, onActivitySuccess }) {
               </div>
               <div className="mb-2">
                 <p className="font-semibold">{log.itemName}</p>
+                <p className="text-sm text-gray-600">Asal: {log.asal}</p>
                 <p className="text-sm text-gray-600">Jumlah: {log.jumlah}</p>
               </div>
               <div className="flex gap-3">
