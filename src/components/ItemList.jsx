@@ -2,6 +2,7 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import MutasiForm from "./MutasiForm";
 import PenjualanForm from "./PenjualanForm";
+import TransferForm from "./TransferForm";
 
 export default function ItemList({ onActivitySuccess, refreshTrigger }) {
   const [items, setItems] = useState([]);
@@ -160,6 +161,7 @@ export default function ItemList({ onActivitySuccess, refreshTrigger }) {
                 item={item}
                 onActivitySuccess={onActivitySuccess}
               />
+              <TransferForm item={item} onActivitySuccess={onActivitySuccess}/>
             </div>
           ))}
         {items.length === 0 && (

@@ -3,7 +3,6 @@ import axios from "axios";
 
 export default function MutasiForm({
   item,
-  onMutasiSuccess,
   onActivitySuccess,
 }) {
   const [jumlah, setJumlah] = useState("");
@@ -20,7 +19,6 @@ export default function MutasiForm({
         },
       );
 
-      onMutasiSuccess?.(); // 1️⃣ refresh stok (ItemList)
       onActivitySuccess?.(); // 2️⃣ refresh log (LogList)
       setJumlah(""); // 3️⃣ reset form
     } catch (err) {

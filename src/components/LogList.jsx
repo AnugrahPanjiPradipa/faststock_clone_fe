@@ -131,6 +131,7 @@ export default function LogList({ refreshKey, onActivitySuccess }) {
               <option value="input">Input</option>
               <option value="mutasi">Mutasi</option>
               <option value="penjualan">Penjualan</option>
+              <option value="transfer">Transfer</option>
             </select>
           </div>
 
@@ -172,6 +173,7 @@ export default function LogList({ refreshKey, onActivitySuccess }) {
               <th className="p-2">Item</th>
               <th className="p-2">Jenis</th>
               <th className="p-2">Asal</th>
+              <th className="p-2">Tujuan</th>
               <th className="p-2">Jumlah</th>
               <th className="p-2">Aksi</th>
             </tr>
@@ -191,7 +193,8 @@ export default function LogList({ refreshKey, onActivitySuccess }) {
                   </td>
                   <td className="p-2">{log.itemName}</td>
                   <td className="p-2 capitalize">{log.type}</td>
-                  <td className="p-2 capitalize">{log.asal}</td>
+                  <td className="p-2 capitalize">{log.asal || "-"}</td>
+<td className="p-2 capitalize">{log.tujuan || "-"}</td>
                   <td className="p-2">{log.jumlah}</td>
                   <td className="p-2 flex gap-2">
                     <button
@@ -234,7 +237,8 @@ export default function LogList({ refreshKey, onActivitySuccess }) {
               </div>
               <div className="mb-2">
                 <p className="font-semibold">{log.itemName}</p>
-                <p className="text-sm text-gray-600">Asal: {log.asal}</p>
+                <p className="text-sm text-gray-600">Asal: {log.asal || "-"}</p>
+                <p className="text-sm text-gray-600">Tujuan: {log.tujuan || "-"}</p>
                 <p className="text-sm text-gray-600">Jumlah: {log.jumlah}</p>
               </div>
               <div className="flex gap-3">
