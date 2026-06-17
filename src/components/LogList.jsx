@@ -18,7 +18,7 @@ export default function LogList({ refreshKey, onActivitySuccess }) {
   const fetchLogs = async () => {
     try {
       const res = await axios.get(
-        `https://faststock-backend.vercel.app/api/logs`,
+        `http://localhost:5000/api/logs`,
         { params: { date: tanggal, type: jenis } },
       );
       setLogs(Array.isArray(res.data) ? res.data : res.data.logs || []);
@@ -33,7 +33,7 @@ export default function LogList({ refreshKey, onActivitySuccess }) {
   }, [refreshKey, tanggal, jenis]);
 
   const handleExport = () => {
-    const url = `https://faststock-backend.vercel.app/api/logs/export?date=${tanggal}&type=${jenis}`;
+    const url = `http://localhost:5000/api/logs/export?date=${tanggal}&type=${jenis}`;
     const link = document.createElement("a");
     link.href = url;
     link.download = `log-${tanggal}-${jenis}.xlsx`;
@@ -45,7 +45,7 @@ export default function LogList({ refreshKey, onActivitySuccess }) {
 
     setLoading(true);
     try {
-      await axios.delete("https://faststock-backend.vercel.app/api/logs", {
+      await axios.delete("http://localhost:5000/api/logs", {
         data: { date: tanggal },
       });
       await fetchLogs();
@@ -61,7 +61,7 @@ export default function LogList({ refreshKey, onActivitySuccess }) {
     if (!confirm("Yakin ingin menghapus log ini? Stok akan dikembalikan."))
       return;
     try {
-      await axios.delete(`https://faststock-backend.vercel.app/api/logs/${id}`);
+      await axios.delete(`http://localhost:5000/api/logs/${id}`);
       await fetchLogs();
       onActivitySuccess?.();
     } catch (err) {
@@ -81,7 +81,7 @@ export default function LogList({ refreshKey, onActivitySuccess }) {
 
     try {
       await axios.put(
-        `https://faststock-backend.vercel.app/api/logs/${editLog._id}`,
+        `http://localhost:5000/api/logs/${editLog._id}`,
         {
           itemId: editLog.itemId,
           itemName: editLog.itemName,

@@ -13,7 +13,7 @@ export default function MutasiForm({
 
     try {
       await axios.put(
-        `https://faststock-backend.vercel.app/api/items/mutasi/${item._id}`,
+        `http://localhost:5000/api/items/mutasi/${item._id}`,
         {
           jumlah: parseInt(jumlah),
         },

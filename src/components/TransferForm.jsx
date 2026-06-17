@@ -13,7 +13,7 @@ export default function TransferForm({
     useEffect(() => {
       const fetchData = async () => {
         const response = await fetch(
-          "https://faststock-backend.vercel.app/api/gerai",
+          "http://localhost:5000/api/gerai",
         );
         const result = await response.json();
   
@@ -33,7 +33,7 @@ export default function TransferForm({
 
     try {
       await axios.put(
-  `https://faststock-backend.vercel.app/api/items/transfer/${item._id}`,
+  `http://localhost:5000/api/items/transfer/${item._id}`,
   {
     jumlah: parseInt(jumlah),
     tujuan: selectedGerai,

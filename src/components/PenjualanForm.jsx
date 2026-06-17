@@ -10,7 +10,7 @@ export default function PenjualanForm({ item, onSuccess, onActivitySuccess }) {
 
     try {
       await axios.put(
-        `https://faststock-backend.vercel.app/api/items/penjualan/${item._id}`,
+        `http://localhost:5000/api/items/penjualan/${item._id}`,
         {
           jumlah: parseInt(jumlah),
         },

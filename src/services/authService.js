@@ -1,7 +1,7 @@
 // src/services/authService.js
 import axios from 'axios';
 
-const API_URL = 'https://faststockbackend-production.up.railway.app/api/auth'; // sesuaikan port backend
+const API_URL = 'http://localhost:5000/api/auth'; // sesuaikan port backend
 
 export const register = async (username, password, role) => {
   const res = await axios.post(`${API_URL}/register`, { username, password, role });
