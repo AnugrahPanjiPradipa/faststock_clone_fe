@@ -17,18 +17,25 @@ export default function ItemList({ onActivitySuccess, refreshTrigger }) {
 
   const itemsPerPage = 10;
 
+  // 🔹 Ambil role dan token user yang sedang login
+  const userRole = localStorage.getItem("role");
+  const token = localStorage.getItem("token");
+
+  // Konfigurasi Header untuk Axios
+  const authHeaders = {
+    Authorization: `Bearer ${token}`,
+  };
+
   const fetchItems = async () => {
     try {
-      const res = await axios.get(
-        "http://localhost:5000/api/items",
-        {
-          params: {
-            page: currentPage,
-            limit: itemsPerPage,
-            search: searchTerm,
-          },
+      const res = await axios.get("http://localhost:5000/api/items", {
+        params: {
+          page: currentPage,
+          limit: itemsPerPage,
+          search: searchTerm,
         },
-      );
+        headers: authHeaders, // 🔹 Tambahkan token di sini
+      });
 
       // ⬅️ Kalau di page sekarang kosong tapi masih ada page sebelumnya
       if (res.data.items.length === 0 && currentPage > 1) {
@@ -50,9 +57,9 @@ export default function ItemList({ onActivitySuccess, refreshTrigger }) {
 
   useEffect(() => {
     const fetchData = async () => {
-      const response = await fetch(
-        "http://localhost:5000/api/gerai",
-      );
+      const response = await fetch("http://localhost:5000/api/gerai", {
+        headers: authHeaders, // 🔹 Tambahkan token juga di fetch biasa
+      });
       const result = await response.json();
 
       setGeraiList(result);
@@ -70,10 +77,12 @@ export default function ItemList({ onActivitySuccess, refreshTrigger }) {
     try {
       await axios.delete(
         `http://localhost:5000/api/items/${id}`,
+        { headers: authHeaders }, // 🔹 Tambahkan token
       );
       onActivitySuccess?.(); // 🔹 trigger parent refresh ItemList + LogList
     } catch (error) {
       console.error("Gagal menghapus item:", error);
+      alert(error.response?.data?.error || "Gagal menghapus item");
     }
   };
 
@@ -81,16 +90,19 @@ export default function ItemList({ onActivitySuccess, refreshTrigger }) {
     e.preventDefault();
     try {
       const payload = {
-      name: editName,
-      addStockGudang: Number(addStockGudang),
-      asal: selectedGerai, 
-    };
+        name: editName,
+        addStockGudang: Number(addStockGudang),
+        asal: selectedGerai,
+      };
 
       await axios.put(
         `http://localhost:5000/api/items/${editItem._id}`,
         payload,
         {
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            ...authHeaders, // 🔹 Gabungkan header token dengan Content-Type
+          },
         },
       );
 
@@ -101,6 +113,7 @@ export default function ItemList({ onActivitySuccess, refreshTrigger }) {
       onActivitySuccess?.();
     } catch (err) {
       console.error("Gagal update:", err);
+      alert(err.response?.data?.error || "Gagal mengubah item");
     }
   };
 
@@ -131,52 +144,66 @@ export default function ItemList({ onActivitySuccess, refreshTrigger }) {
         {items
           .filter((item) => item.stockGudang > 0 || item.stockEtalase > 0)
           .map((item) => (
-            <div key={item._id} className="border p-4 rounded shadow">
+            <div key={item._id} className="border p-4 rounded shadow bg-white">
               <h2 className="text-xl font-bold">{item.name}</h2>
               <p className="mt-2 text-sm">Stok Gudang: {item.stockGudang}</p>
               <p className="text-sm">Stok Etalase: {item.stockEtalase}</p>
 
-              <div className="flex gap-2 mt-2">
-                <button
-                  onClick={() => {
-                    setEditItem(item);
-                    setEditName(item.name);
-                    setSelectedGerai(item.asal);
-                  }}
-                  className="bg-yellow-500 text-white px-2 py-1 rounded"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDelete(item._id)}
-                  className="bg-red-500 text-white px-3 py-1 rounded"
-                >
-                  Hapus
-                </button>
-              </div>
+              {/* 🔹 HANYA ADMIN YANG BISA EDIT & HAPUS */}
+              {userRole === "admin" && (
+                <div className="flex gap-2 mt-2 border-b pb-3 mb-3">
+                  <button
+                    onClick={() => {
+                      setEditItem(item);
+                      setEditName(item.name);
+                      setSelectedGerai(item.asal);
+                    }}
+                    className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-sm"
+                  >
+                    Edit Master
+                  </button>
+                  <button
+                    onClick={() => handleDelete(item._id)}
+                    className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm"
+                  >
+                    Hapus
+                  </button>
+                </div>
+              )}
 
-              {/* Mutasi & Penjualan */}
-              <MutasiForm item={item} onActivitySuccess={onActivitySuccess} />
-              <PenjualanForm
-                item={item}
-                onActivitySuccess={onActivitySuccess}
-              />
-              <TransferForm item={item} onActivitySuccess={onActivitySuccess}/>
+              {/* Mutasi & Penjualan (Bisa diakses Staff & Admin) */}
+              <div
+                className={`flex flex-col gap-2 ${userRole !== "admin" ? "mt-4" : ""}`}
+              >
+                <MutasiForm item={item} onActivitySuccess={onActivitySuccess} />
+                <PenjualanForm
+                  item={item}
+                  onActivitySuccess={onActivitySuccess}
+                />
+
+                {/* 🔹 HANYA ADMIN YANG BISA TRANSFER */}
+                {userRole === "admin" && (
+                  <TransferForm
+                    item={item}
+                    onActivitySuccess={onActivitySuccess}
+                  />
+                )}
+              </div>
             </div>
           ))}
         {items.length === 0 && (
-          <p className="text-center text-gray-500 col-span-full">
+          <p className="text-center text-gray-500 col-span-full py-4">
             Tidak ada obat ditemukan.
           </p>
         )}
       </div>
 
-      {/* Edit Modal */}
+      {/* Edit Modal (Secara logika form ini hanya terpanggil oleh Admin karena tombol Edit disembunyikan) */}
       {editItem && (
-        <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center z-50">
+        <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center z-50 px-4">
           <form
             onSubmit={handleEditSubmit}
-            className="bg-white p-6 rounded shadow w-96"
+            className="bg-white p-6 rounded shadow w-full max-w-sm"
           >
             <h2 className="text-lg font-bold mb-4">Edit Item</h2>
             <input
@@ -199,26 +226,26 @@ export default function ItemList({ onActivitySuccess, refreshTrigger }) {
               id="gerai"
               name="gerai"
               value={selectedGerai}
-              className="w-full border p-2"
+              className="w-full border p-2 mb-2 rounded"
               onChange={(e) => setSelectedGerai(e.target.value)}
             >
               {geraiList.map((item) => (
-                <option value={item.gerai} key={item.no}>
+                <option value={item.gerai} key={item.no || item._id}>
                   {item.gerai}
                 </option>
               ))}
             </select>
-            <div className="flex justify-end gap-2 py-4">
+            <div className="flex justify-end gap-2 py-2">
               <button
                 type="button"
                 onClick={() => setEditItem(null)}
-                className="bg-gray-400 px-3 py-1 rounded text-white"
+                className="bg-gray-400 px-3 py-1 rounded text-white hover:bg-gray-500"
               >
                 Batal
               </button>
               <button
                 type="submit"
-                className="bg-blue-600 px-3 py-1 rounded text-white"
+                className="bg-blue-600 px-3 py-1 rounded text-white hover:bg-blue-700"
               >
                 Simpan
               </button>
@@ -234,7 +261,7 @@ export default function ItemList({ onActivitySuccess, refreshTrigger }) {
             <button
               onClick={() => goToPage(currentPage - 1)}
               disabled={currentPage === 1}
-              className="px-3 py-1 border rounded whitespace-nowrap disabled:opacity-50"
+              className="px-3 py-1 border rounded whitespace-nowrap disabled:opacity-50 hover:bg-gray-100"
             >
               ← Prev
             </button>
@@ -243,7 +270,7 @@ export default function ItemList({ onActivitySuccess, refreshTrigger }) {
               <button
                 key={index}
                 onClick={() => goToPage(index + 1)}
-                className={`px-3 py-1 border rounded whitespace-nowrap ${currentPage === index + 1 ? "bg-blue-500 text-white" : ""}`}
+                className={`px-3 py-1 border rounded whitespace-nowrap ${currentPage === index + 1 ? "bg-blue-500 text-white" : "hover:bg-gray-100"}`}
               >
                 {index + 1}
               </button>
@@ -252,7 +279,7 @@ export default function ItemList({ onActivitySuccess, refreshTrigger }) {
             <button
               onClick={() => goToPage(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className="px-3 py-1 border rounded whitespace-nowrap disabled:opacity-50"
+              className="px-3 py-1 border rounded whitespace-nowrap disabled:opacity-50 hover:bg-gray-100"
             >
               Next →
             </button>

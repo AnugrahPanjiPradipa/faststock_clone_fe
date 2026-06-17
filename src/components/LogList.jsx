@@ -15,11 +15,23 @@ export default function LogList({ refreshKey, onActivitySuccess }) {
   // 🔎 Tambah state untuk search
   const [searchTerm, setSearchTerm] = useState("");
 
+  // 🔹 Ambil role dan token
+  const userRole = localStorage.getItem('role');
+  const token = localStorage.getItem('token');
+
+  // Konfigurasi Header
+  const authHeaders = {
+    Authorization: `Bearer ${token}`
+  };
+
   const fetchLogs = async () => {
     try {
       const res = await axios.get(
         `http://localhost:5000/api/logs`,
-        { params: { date: tanggal, type: jenis } },
+        { 
+          params: { date: tanggal, type: jenis },
+          headers: authHeaders // 🔹 Sisipkan token
+        }
       );
       setLogs(Array.isArray(res.data) ? res.data : res.data.logs || []);
     } catch (err) {
@@ -32,12 +44,31 @@ export default function LogList({ refreshKey, onActivitySuccess }) {
     fetchLogs();
   }, [refreshKey, tanggal, jenis]);
 
-  const handleExport = () => {
-    const url = `http://localhost:5000/api/logs/export?date=${tanggal}&type=${jenis}`;
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `log-${tanggal}-${jenis}.xlsx`;
-    link.click();
+  // 🔹 Perbaikan Export: Menggunakan Axios blob agar bisa mengirim token Auth
+  const handleExport = async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get(
+        `http://localhost:5000/api/logs/export?date=${tanggal}&type=${jenis}`,
+        { 
+          headers: authHeaders,
+          responseType: "blob" // Penting untuk file biner (Excel)
+        }
+      );
+      
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `log-${tanggal}-${jenis}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (err) {
+      console.error("Gagal export log:", err);
+      alert("Gagal mengunduh file Excel.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDeleteLogs = async () => {
@@ -47,11 +78,12 @@ export default function LogList({ refreshKey, onActivitySuccess }) {
     try {
       await axios.delete("http://localhost:5000/api/logs", {
         data: { date: tanggal },
+        headers: authHeaders // 🔹 Sisipkan token
       });
       await fetchLogs();
       onActivitySuccess?.();
     } catch (err) {
-      alert("Gagal menghapus log");
+      alert(err.response?.data?.error || "Gagal menghapus log");
       console.error(err);
     }
     setLoading(false);
@@ -61,12 +93,14 @@ export default function LogList({ refreshKey, onActivitySuccess }) {
     if (!confirm("Yakin ingin menghapus log ini? Stok akan dikembalikan."))
       return;
     try {
-      await axios.delete(`http://localhost:5000/api/logs/${id}`);
+      await axios.delete(`http://localhost:5000/api/logs/${id}`, {
+        headers: authHeaders // 🔹 Sisipkan token
+      });
       await fetchLogs();
       onActivitySuccess?.();
     } catch (err) {
       console.error("Gagal menghapus log:", err);
-      alert("Terjadi kesalahan saat menghapus log.");
+      alert(err.response?.data?.error || "Terjadi kesalahan saat menghapus log.");
     }
   };
 
@@ -88,6 +122,7 @@ export default function LogList({ refreshKey, onActivitySuccess }) {
           type: editType,
           jumlah: Number(editJumlah),
         },
+        { headers: authHeaders } // 🔹 Sisipkan token
       );
 
       setEditLog(null);
@@ -95,7 +130,7 @@ export default function LogList({ refreshKey, onActivitySuccess }) {
       onActivitySuccess?.();
     } catch (err) {
       console.error("Gagal mengupdate log:", err);
-      alert("Terjadi kesalahan saat mengedit log.");
+      alert(err.response?.data?.error || "Terjadi kesalahan saat mengedit log.");
     }
   };
 
@@ -128,6 +163,7 @@ export default function LogList({ refreshKey, onActivitySuccess }) {
               className="border px-2 py-1 rounded text-sm"
             >
               <option value="all">Semua</option>
+              {/* Jika user biasa (staff), mungkin opsinya perlu dibatasi juga, tapi kita asumsikan ini bisa dilihat semua */}
               <option value="input">Input</option>
               <option value="mutasi">Mutasi</option>
               <option value="penjualan">Penjualan</option>
@@ -135,22 +171,28 @@ export default function LogList({ refreshKey, onActivitySuccess }) {
             </select>
           </div>
 
-          <button
-            onClick={handleExport}
-            className="bg-green-600 text-white px-3 py-1 rounded text-sm"
-          >
-            Export Excel
-          </button>
+          {/* 🔹 HANYA ADMIN YANG BISA EXPORT */}
+          {userRole === 'admin' && (
+            <button
+              onClick={handleExport}
+              disabled={loading}
+              className="bg-green-600 text-white px-3 py-1 rounded text-sm disabled:opacity-50"
+            >
+              {loading ? "Mengekspor..." : "Export Excel"}
+            </button>
+          )}
         </div>
 
-        {/* Kanan: hapus log */}
-        <button
-          onClick={handleDeleteLogs}
-          disabled={loading}
-          className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 w-full sm:w-auto"
-        >
-          {loading ? "Menghapus..." : "Hapus Log Tanggal Ini"}
-        </button>
+        {/* 🔹 HANYA ADMIN YANG BISA HAPUS LOG HARIAN */}
+        {userRole === 'admin' && (
+          <button
+            onClick={handleDeleteLogs}
+            disabled={loading}
+            className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 w-full sm:w-auto disabled:opacity-50"
+          >
+            {loading ? "Menghapus..." : "Hapus Log Tanggal Ini"}
+          </button>
+        )}
       </div>
 
       {/* 🔎 Input pencarian */}
@@ -166,50 +208,55 @@ export default function LogList({ refreshKey, onActivitySuccess }) {
 
       {/* Tabel log - tampil hanya di layar >= sm */}
       <div className="hidden sm:block overflow-x-auto">
-        <table className="w-full text-sm border rounded-lg overflow-hidden">
+        <table className="w-full text-sm border rounded-lg overflow-hidden bg-white">
           <thead>
             <tr className="bg-gray-200">
-              <th className="p-2">Waktu</th>
-              <th className="p-2">Item</th>
-              <th className="p-2">Jenis</th>
-              <th className="p-2">Asal</th>
-              <th className="p-2">Tujuan</th>
-              <th className="p-2">Jumlah</th>
-              <th className="p-2">Aksi</th>
+              <th className="p-2 text-left">Waktu</th>
+              <th className="p-2 text-left">Item</th>
+              <th className="p-2 text-left">Jenis</th>
+              <th className="p-2 text-left">Asal</th>
+              <th className="p-2 text-left">Tujuan</th>
+              <th className="p-2 text-left">Jumlah</th>
+              {/* 🔹 HANYA ADMIN YANG MELIHAT HEADER AKSI */}
+              {userRole === 'admin' && <th className="p-2 text-center">Aksi</th>}
             </tr>
           </thead>
           <tbody>
             {filteredLogs.length === 0 ? (
               <tr>
-                <td colSpan="5" className="text-center p-4 text-gray-500">
+                <td colSpan={userRole === 'admin' ? "7" : "6"} className="text-center p-4 text-gray-500">
                   Tidak ada log
                 </td>
               </tr>
             ) : (
               filteredLogs.map((log) => (
-                <tr key={log._id} className="border-t">
+                <tr key={log._id} className="border-t hover:bg-gray-50">
                   <td className="p-2 whitespace-nowrap">
                     {dayjs(log.createdAt).format("YYYY-MM-DD HH:mm")}
                   </td>
-                  <td className="p-2">{log.itemName}</td>
+                  <td className="p-2 font-medium">{log.itemName}</td>
                   <td className="p-2 capitalize">{log.type}</td>
                   <td className="p-2 capitalize">{log.asal || "-"}</td>
-<td className="p-2 capitalize">{log.tujuan || "-"}</td>
-                  <td className="p-2">{log.jumlah}</td>
-                  <td className="p-2 flex gap-2">
-                    <button
-                      onClick={() => openEditModal(log)}
-                      className="text-blue-600 hover:underline"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDeleteLog(log._id)}
-                      className="text-red-600 hover:underline"
-                    >
-                      Hapus
-                    </button>
-                  </td>
+                  <td className="p-2 capitalize">{log.tujuan || "-"}</td>
+                  <td className="p-2 font-semibold text-center">{log.jumlah}</td>
+                  
+                  {/* 🔹 HANYA ADMIN YANG MELIHAT TOMBOL EDIT & HAPUS */}
+                  {userRole === 'admin' && (
+                    <td className="p-2 flex gap-2 justify-center">
+                      <button
+                        onClick={() => openEditModal(log)}
+                        className="text-blue-600 hover:underline hover:text-blue-800"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteLog(log._id)}
+                        className="text-red-600 hover:underline hover:text-red-800"
+                      >
+                        Hapus
+                      </button>
+                    </td>
+                  )}
                 </tr>
               ))
             )}
@@ -220,7 +267,7 @@ export default function LogList({ refreshKey, onActivitySuccess }) {
       {/* Mobile Card List */}
       <div className="sm:hidden space-y-3">
         {filteredLogs.length === 0 ? (
-          <div className="text-center text-gray-500 py-4">Tidak ada log</div>
+          <div className="text-center text-gray-500 py-4 bg-white rounded shadow-sm">Tidak ada log</div>
         ) : (
           filteredLogs.map((log) => (
             <div
@@ -228,62 +275,68 @@ export default function LogList({ refreshKey, onActivitySuccess }) {
               className="bg-white border rounded-lg p-3 shadow-sm"
             >
               <div className="flex justify-between items-center mb-2">
-                <span className="text-xs text-gray-500">
+                <span className="text-xs text-gray-500 font-medium">
                   {dayjs(log.createdAt).format("HH:mm, DD MMM YYYY")}
                 </span>
-                <span className="capitalize text-sm font-medium text-gray-700">
+                <span className="capitalize text-sm font-bold text-blue-700 bg-blue-100 px-2 py-1 rounded">
                   {log.type}
                 </span>
               </div>
               <div className="mb-2">
-                <p className="font-semibold">{log.itemName}</p>
-                <p className="text-sm text-gray-600">Asal: {log.asal || "-"}</p>
-                <p className="text-sm text-gray-600">Tujuan: {log.tujuan || "-"}</p>
-                <p className="text-sm text-gray-600">Jumlah: {log.jumlah}</p>
+                <p className="font-bold text-lg">{log.itemName}</p>
+                <div className="text-sm text-gray-600 mt-1 flex justify-between">
+                  <span>Asal: {log.asal || "-"}</span>
+                  <span>Tujuan: {log.tujuan || "-"}</span>
+                </div>
+                <p className="text-sm text-gray-800 font-semibold mt-1">Jumlah: {log.jumlah}</p>
               </div>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => openEditModal(log)}
-                  className="flex-1 bg-blue-600 text-white py-1 rounded-lg text-sm"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDeleteLog(log._id)}
-                  className="flex-1 bg-red-600 text-white py-1 rounded-lg text-sm"
-                >
-                  Hapus
-                </button>
-              </div>
+              
+              {/* 🔹 HANYA ADMIN YANG MELIHAT TOMBOL EDIT & HAPUS DI MOBILE */}
+              {userRole === 'admin' && (
+                <div className="flex gap-3 mt-3 border-t pt-3">
+                  <button
+                    onClick={() => openEditModal(log)}
+                    className="flex-1 bg-blue-100 text-blue-700 py-1.5 rounded-lg text-sm font-semibold hover:bg-blue-200"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDeleteLog(log._id)}
+                    className="flex-1 bg-red-100 text-red-700 py-1.5 rounded-lg text-sm font-semibold hover:bg-red-200"
+                  >
+                    Hapus
+                  </button>
+                </div>
+              )}
             </div>
           ))
         )}
       </div>
 
-      {/* Modal Edit */}
+      {/* Modal Edit (Secara teknis hanya bisa dibuka admin karena tombol tersembunyi untuk staff) */}
       {editLog && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center p-2">
-          <div className="bg-white p-4 rounded shadow w-full max-w-sm">
-            <h2 className="text-lg font-bold mb-3">Edit Log</h2>
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center p-4 z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm">
+            <h2 className="text-lg font-bold mb-4">Edit Log: {editLog.itemName}</h2>
             <div className="mb-4">
-              <label className="block mb-1">Jumlah:</label>
+              <label className="block mb-1 font-semibold text-gray-700">Jumlah Aktual:</label>
               <input
                 type="number"
                 value={editJumlah}
                 onChange={(e) => setEditJumlah(e.target.value)}
-                className="border px-2 py-1 rounded w-full"
+                className="border px-3 py-2 rounded w-full focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
-            <div className="flex justify-end gap-2">
+            <div className="flex justify-end gap-2 mt-6">
               <button
                 onClick={() => setEditLog(null)}
-                className="px-3 py-1 border rounded"
+                className="px-4 py-2 border rounded hover:bg-gray-100 text-gray-700 font-medium"
               >
                 Batal
               </button>
               <button
                 onClick={handleUpdateLog}
-                className="bg-blue-600 text-white px-3 py-1 rounded"
+                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 font-medium"
               >
                 Simpan
               </button>
