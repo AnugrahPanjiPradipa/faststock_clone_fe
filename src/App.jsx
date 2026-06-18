@@ -1,10 +1,18 @@
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
-import ItemForm from './components/ItemForm';
-import ItemList from './components/ItemList';
-import LogList from './components/LogList';
-import Login from './pages/Login';
-import Register from './pages/Register';
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useNavigate,
+} from "react-router-dom";
+import { useState } from "react";
+import ItemForm from "./components/ItemForm";
+import ItemList from "./components/ItemList";
+import LogList from "./components/LogList";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 function Dashboard() {
   const [reload, setReload] = useState(false);
@@ -13,7 +21,7 @@ function Dashboard() {
   const navigate = useNavigate();
 
   // Ambil role dari localStorage untuk mengecek apakah user adalah admin atau staff
-  const userRole = localStorage.getItem('role');
+  const userRole = localStorage.getItem("role");
 
   // 🔹 Satu fungsi untuk refresh ItemList dan LogList
   const refreshLogsAndItems = () => {
@@ -22,9 +30,9 @@ function Dashboard() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('role'); // Pastikan role juga dihapus saat logout
-    navigate('/login', { replace: true });
+    localStorage.removeItem("token");
+    localStorage.removeItem("role"); // Pastikan role juga dihapus saat logout
+    navigate("/login", { replace: true });
   };
 
   return (
@@ -33,7 +41,7 @@ function Dashboard() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
           <h1 className="text-xl sm:text-2xl font-bold text-center sm:text-left">
-            Dashboard Stok Gudang & Etalase 
+            Dashboard Stok Gudang & Etalase
             {/* Indikator Role Opsional */}
             <span className="text-sm ml-2 px-2 py-1 bg-gray-200 rounded text-gray-700 uppercase">
               {userRole}
@@ -48,14 +56,14 @@ function Dashboard() {
         </div>
 
         {/* Tombol & Form Tambah Barang - HANYA MUNCUL JIKA ADMIN */}
-        {userRole === 'admin' && (
+        {userRole === "admin" && (
           <>
             <div className="flex justify-center sm:justify-end mb-6">
               <button
                 onClick={() => setShowForm(!showForm)}
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 w-full sm:w-auto"
               >
-                {showForm ? 'Sembunyikan Form' : 'Tambah Barang'}
+                {showForm ? "Sembunyikan Form" : "Tambah Barang"}
               </button>
             </div>
 
@@ -81,7 +89,9 @@ function Dashboard() {
         </div>
 
         {/* Audit Stok */}
-        <h2 className="text-2xl font-bold text-center mt-8 mb-4">Audit Stok Obat</h2>
+        <h2 className="text-2xl font-bold text-center mt-8 mb-4">
+          Audit Stok Obat
+        </h2>
         <LogList
           refreshKey={logRefreshKey}
           onActivitySuccess={refreshLogsAndItems}
@@ -94,7 +104,7 @@ function Dashboard() {
 
 // Protected Route untuk membatasi akses (Harus Login)
 function ProtectedRoute({ children }) {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem("token");
   if (!token) {
     return <Navigate to="/login" replace />;
   }
@@ -103,7 +113,7 @@ function ProtectedRoute({ children }) {
 
 // Public Route untuk halaman login/register
 function PublicRoute({ children }) {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem("token");
   if (token) {
     return <Navigate to="/" replace />;
   }
@@ -115,11 +125,49 @@ function App() {
     <BrowserRouter>
       <Routes>
         {/* Halaman Login & Register (Public Route) */}
-        <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
-        <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
+        <Route
+          path="/login"
+          element={
+            <PublicRoute>
+              <Login />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            <PublicRoute>
+              <Register />
+            </PublicRoute>
+          }
+        />
+        {/* Halaman Reset & Forgot Password (Public Route) */}
+        <Route
+          path="/forgot-password"
+          element={
+            <PublicRoute>
+              <ForgotPassword />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/reset-password"
+          element={
+            <PublicRoute>
+              <ResetPassword />
+            </PublicRoute>
+          }
+        />
 
         {/* Halaman Dashboard (Protected Route) */}
-        <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Redirect jika route tidak ditemukan */}
         <Route path="*" element={<Navigate to="/" replace />} />

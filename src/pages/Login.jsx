@@ -66,12 +66,18 @@ export default function Login() {
         >
           Login
         </button>
-        <p className="mt-3 text-sm text-center">
-          Belum punya akun?{" "}
-          <a href="/register" className="text-blue-500">
-            Daftar
+        {/* Tambahan Link Lupa Password */}
+        <div className="flex justify-between items-center mt-3 text-sm">
+          <a href="/forgot-password" className="text-blue-500 hover:underline">
+            Lupa Password?
           </a>
-        </p>
+          <p>
+            Belum punya akun?{" "}
+            <a href="/register" className="text-blue-500 hover:underline">
+              Daftar
+            </a>
+          </p>
+        </div>
       </form>
     </div>
   );

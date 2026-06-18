@@ -1,26 +1,30 @@
 // src/pages/Register.jsx
-import { useState } from 'react';
-import { register } from '../services/authService';
+import { useState } from "react";
+import { register } from "../services/authService";
+import { EyeIcon, EyeOffIcon } from "lucide-react";
 
 export default function Register() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState(""); 
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Role dikunci secara default menjadi 'user'
-      await register(username, password, 'user');
-      setSuccess('Pendaftaran berhasil! Silakan login.');
-      setError('');
-      // Opsional: Kosongkan form setelah sukses
-      setUsername('');
-      setPassword('');
+      // Masukkan parameter email ke service
+      await register(username, email, password, "user");
+      setSuccess(
+        "Pendaftaran berhasil! Silakan cek email kamu untuk verifikasi.",
+      );
+      setError("");
+      setUsername("");
+      setEmail("");
+      setPassword("");
     } catch (err) {
-      // Sesuaikan dengan error dari axios authService yang baru
-      setError(err.response?.data?.error || err.error || 'Pendaftaran gagal');
+      setError(err.error || err.message || "Pendaftaran gagal");
     }
   };
 
@@ -31,10 +35,14 @@ export default function Register() {
         className="bg-white p-6 rounded-lg shadow-md w-80"
       >
         <h2 className="text-2xl font-bold mb-4 text-center">Register</h2>
-        
-        {error && <p className="text-red-500 mb-2 text-sm text-center">{error}</p>}
-        {success && <p className="text-green-500 mb-2 text-sm text-center">{success}</p>}
-        
+
+        {error && (
+          <p className="text-red-500 mb-2 text-sm text-center">{error}</p>
+        )}
+        {success && (
+          <p className="text-green-500 mb-2 text-sm text-center">{success}</p>
+        )}
+
         <input
           type="text"
           placeholder="Username"
@@ -43,31 +51,50 @@ export default function Register() {
           className="w-full border px-3 py-2 rounded mb-3"
           required
         />
-        
+
+        {/* Input Email Baru */}
         <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full border px-3 py-2 rounded mb-4"
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-full border px-3 py-2 rounded mb-3"
           required
         />
-        
-        {/* Pilihan Role (Select) telah dihapus dari sini */}
-        
+
+        {/* Password Input + Eye Icon */}
+        <div className="relative mb-3">
+          <input
+            type={showPassword ? "text" : "password"}
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full border px-3 py-2 rounded pr-10"
+            required
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600"
+          >
+            {showPassword ? (
+              <EyeOffIcon className="w-5 h-5" />
+            ) : (
+              <EyeIcon className="w-5 h-5" />
+            )}
+          </button>
+        </div>
+
         <button
           type="submit"
           className="w-full bg-green-500 text-white py-2 rounded hover:bg-green-600 transition-colors"
         >
           Register
         </button>
-        
+
         <p className="mt-4 text-sm text-center">
-          Sudah punya akun?{' '}
-          <a
-            href="/login"
-            className="text-blue-500 hover:underline"
-          >
+          Sudah punya akun?{" "}
+          <a href="/login" className="text-blue-500 hover:underline">
             Login
           </a>
         </p>
