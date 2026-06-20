@@ -6,24 +6,24 @@ export default function TransferForm({ item, onActivitySuccess }) {
   const [geraiList, setGeraiList] = useState([]);
   const [selectedGerai, setSelectedGerai] = useState("");
 
+  // 1️⃣ Mengambil daftar gerai saat komponen dimuat (Murni GET, tidak butuh payload transaksi)
   useEffect(() => {
     const fetchData = async () => {
-      // Ambil token untuk request daftar gerai
       const token = localStorage.getItem("token");
 
       try {
         const response = await fetch("http://localhost:5000/api/gerai", {
-          // Tambahkan header Authorization
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${token}`, // Mengirim token agar lolos middleware protect
           },
         });
         const result = await response.json();
 
-        setGeraiList(result);
-
-        if (result.length > 0) {
-          setSelectedGerai(result[0].gerai);
+        if (Array.isArray(result)) {
+          setGeraiList(result);
+          if (result.length > 0) {
+            setSelectedGerai(result[0].gerai);
+          }
         }
       } catch (error) {
         console.error("Gagal mengambil daftar gerai:", error);
@@ -33,30 +33,30 @@ export default function TransferForm({ item, onActivitySuccess }) {
     fetchData();
   }, []);
 
+  // 2️⃣ Mengirim aksi transfer ke Fat Controller Backend
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!jumlah || jumlah <= 0) return alert("Jumlah harus lebih dari 0");
 
-    // Ambil token untuk request transfer stok
     const token = localStorage.getItem("token");
 
     try {
       await axios.put(
-        `http://localhost:5000/api/items/transfer/${item._id}`,
+        `http://localhost:5000/api/items/process/${item._id}`, // 🔹 Mengarah ke route terpusat baru
         {
+          actionType: "transfer", // 🔹 Properti wajib untuk dibaca di switch/if Express
           jumlah: parseInt(jumlah),
           tujuan: selectedGerai,
         },
-        // Tambahkan header Authorization
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${token}`, // 🔹 Token otentikasi disertakan di sini
           },
         },
       );
 
-      onActivitySuccess?.(); // 2️⃣ refresh log (LogList)
-      setJumlah(""); // 3️⃣ reset form
+      onActivitySuccess?.(); // Refresh log di dashboard
+      setJumlah(""); // Reset input form
     } catch (err) {
       console.log("ERROR:", err.response?.data);
       alert(
@@ -86,7 +86,9 @@ export default function TransferForm({ item, onActivitySuccess }) {
           className="border p-2 w-32"
         >
           {geraiList.map((gerai) => (
-            <option key={gerai._id}>{gerai.gerai}</option>
+            <option key={gerai._id} value={gerai.gerai}>
+              {gerai.gerai}
+            </option>
           ))}
         </select>
         <button
