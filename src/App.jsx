@@ -13,6 +13,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import VerifyEmail from "./pages/VerifyEmail";
 
 function Dashboard() {
   const [reload, setReload] = useState(false);
@@ -31,7 +32,7 @@ function Dashboard() {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-    localStorage.removeItem("role"); // Pastikan role juga dihapus saat logout
+    localStorage.removeItem("role");
     navigate("/login", { replace: true });
   };
 
@@ -155,6 +156,14 @@ function App() {
           element={
             <PublicRoute>
               <ResetPassword />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/verify-email"
+          element={
+            <PublicRoute>
+              <VerifyEmail />
             </PublicRoute>
           }
         />

@@ -8,12 +8,21 @@ export default function PenjualanForm({ item, onSuccess, onActivitySuccess }) {
     e.preventDefault();
     if (!jumlah || jumlah <= 0) return alert("Jumlah harus lebih dari 0");
 
+    // Ambil token dari localStorage
+    const token = localStorage.getItem("token");
+
     try {
       await axios.put(
         `http://localhost:5000/api/items/penjualan/${item._id}`,
         {
           jumlah: parseInt(jumlah),
         },
+        // Tambahkan header Authorization
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
 
       onSuccess?.(); // 1️⃣ refresh stok (ItemList)

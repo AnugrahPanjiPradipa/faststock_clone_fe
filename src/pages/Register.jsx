@@ -5,26 +5,30 @@ import { EyeIcon, EyeOffIcon } from "lucide-react";
 
 export default function Register() {
   const [username, setUsername] = useState("");
-  const [email, setEmail] = useState(""); 
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      setLoading(true);
       // Masukkan parameter email ke service
       await register(username, email, password, "user");
       setSuccess(
         "Pendaftaran berhasil! Silakan cek email kamu untuk verifikasi.",
       );
+      setLoading(false);
       setError("");
       setUsername("");
       setEmail("");
       setPassword("");
     } catch (err) {
       setError(err.error || err.message || "Pendaftaran gagal");
+      setLoading(false);
     }
   };
 
@@ -34,7 +38,7 @@ export default function Register() {
         onSubmit={handleSubmit}
         className="bg-white p-6 rounded-lg shadow-md w-80"
       >
-        <h2 className="text-2xl font-bold mb-4 text-center">Register</h2>
+        <h2 className="text-2xl font-bold mb-4 text-center">DAFTAR</h2>
 
         {error && (
           <p className="text-red-500 mb-2 text-sm text-center">{error}</p>
@@ -87,15 +91,16 @@ export default function Register() {
 
         <button
           type="submit"
-          className="w-full bg-green-500 text-white py-2 rounded hover:bg-green-600 transition-colors"
+          className="w-full bg-green-500 text-white py-2 rounded hover:bg-green-600 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+          disabled={loading}
         >
-          Register
+          {loading ? "Mendaftarkan..." : "Daftar Sekarang"}
         </button>
 
         <p className="mt-4 text-sm text-center">
           Sudah punya akun?{" "}
           <a href="/login" className="text-blue-500 hover:underline">
-            Login
+            Masuk
           </a>
         </p>
       </form>

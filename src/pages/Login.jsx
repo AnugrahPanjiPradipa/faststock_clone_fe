@@ -26,7 +26,7 @@ export default function Login() {
         onSubmit={handleSubmit}
         className="bg-white p-6 rounded-lg shadow-md w-80"
       >
-        <h2 className="text-2xl font-bold mb-4 text-center">Login</h2>
+        <h2 className="text-2xl font-bold mb-4 text-center">MASUK</h2>
         {error && <p className="text-red-500">{error}</p>}
         <input
           type="text"
@@ -62,12 +62,12 @@ export default function Login() {
 
         <button
           type="submit"
-          className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
+          className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 cursor-pointer"
         >
-          Login
+          Masuk Sekarang
         </button>
         {/* Tambahan Link Lupa Password */}
-        <div className="flex justify-between items-center mt-3 text-sm">
+        <div className="flex flex-col gap-2 items-center mt-3 text-sm">
           <a href="/forgot-password" className="text-blue-500 hover:underline">
             Lupa Password?
           </a>

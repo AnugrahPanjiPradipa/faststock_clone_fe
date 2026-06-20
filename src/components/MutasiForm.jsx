@@ -1,21 +1,25 @@
 import { useState } from "react";
 import axios from "axios";
 
-export default function MutasiForm({
-  item,
-  onActivitySuccess,
-}) {
+export default function MutasiForm({ item, onActivitySuccess }) {
   const [jumlah, setJumlah] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!jumlah || jumlah <= 0) return alert("Jumlah harus lebih dari 0");
 
+    const token = localStorage.getItem("token");
+
     try {
       await axios.put(
         `http://localhost:5000/api/items/mutasi/${item._id}`,
         {
           jumlah: parseInt(jumlah),
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
       );
 
