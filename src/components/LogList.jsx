@@ -16,22 +16,22 @@ export default function LogList({ refreshKey, onActivitySuccess }) {
   const [searchTerm, setSearchTerm] = useState("");
 
   // 🔹 Ambil role dan token
-  const userRole = localStorage.getItem('role');
-  const token = localStorage.getItem('token');
+  const userRole = localStorage.getItem("role");
+  const token = localStorage.getItem("token");
 
   // Konfigurasi Header
   const authHeaders = {
-    Authorization: `Bearer ${token}`
+    Authorization: `Bearer ${token}`,
   };
 
   const fetchLogs = async () => {
     try {
       const res = await axios.get(
-        `http://localhost:5000/api/logs`,
-        { 
+        `https://faststock-clone-be.vercel.app/api/logs`,
+        {
           params: { date: tanggal, type: jenis },
-          headers: authHeaders // 🔹 Sisipkan token
-        }
+          headers: authHeaders, // 🔹 Sisipkan token
+        },
       );
       setLogs(Array.isArray(res.data) ? res.data : res.data.logs || []);
     } catch (err) {
@@ -49,13 +49,13 @@ export default function LogList({ refreshKey, onActivitySuccess }) {
     try {
       setLoading(true);
       const res = await axios.get(
-        `http://localhost:5000/api/logs/export?date=${tanggal}&type=${jenis}`,
-        { 
+        `https://faststock-clone-be.vercel.app/api/logs/export?date=${tanggal}&type=${jenis}`,
+        {
           headers: authHeaders,
-          responseType: "blob" // Penting untuk file biner (Excel)
-        }
+          responseType: "blob", // Penting untuk file biner (Excel)
+        },
       );
-      
+
       const url = window.URL.createObjectURL(new Blob([res.data]));
       const link = document.createElement("a");
       link.href = url;
@@ -76,9 +76,9 @@ export default function LogList({ refreshKey, onActivitySuccess }) {
 
     setLoading(true);
     try {
-      await axios.delete("http://localhost:5000/api/logs", {
+      await axios.delete("https://faststock-clone-be.vercel.app/api/logs", {
         data: { date: tanggal },
-        headers: authHeaders // 🔹 Sisipkan token
+        headers: authHeaders, // 🔹 Sisipkan token
       });
       await fetchLogs();
       onActivitySuccess?.();
@@ -93,14 +93,19 @@ export default function LogList({ refreshKey, onActivitySuccess }) {
     if (!confirm("Yakin ingin menghapus log ini? Stok akan dikembalikan."))
       return;
     try {
-      await axios.delete(`http://localhost:5000/api/logs/${id}`, {
-        headers: authHeaders // 🔹 Sisipkan token
-      });
+      await axios.delete(
+        `https://faststock-clone-be.vercel.app/api/logs/${id}`,
+        {
+          headers: authHeaders, // 🔹 Sisipkan token
+        },
+      );
       await fetchLogs();
       onActivitySuccess?.();
     } catch (err) {
       console.error("Gagal menghapus log:", err);
-      alert(err.response?.data?.error || "Terjadi kesalahan saat menghapus log.");
+      alert(
+        err.response?.data?.error || "Terjadi kesalahan saat menghapus log.",
+      );
     }
   };
 
@@ -115,14 +120,14 @@ export default function LogList({ refreshKey, onActivitySuccess }) {
 
     try {
       await axios.put(
-        `http://localhost:5000/api/logs/${editLog._id}`,
+        `https://faststock-clone-be.vercel.app/api/logs/${editLog._id}`,
         {
           itemId: editLog.itemId,
           itemName: editLog.itemName,
           type: editType,
           jumlah: Number(editJumlah),
         },
-        { headers: authHeaders } // 🔹 Sisipkan token
+        { headers: authHeaders }, // 🔹 Sisipkan token
       );
 
       setEditLog(null);
@@ -130,7 +135,9 @@ export default function LogList({ refreshKey, onActivitySuccess }) {
       onActivitySuccess?.();
     } catch (err) {
       console.error("Gagal mengupdate log:", err);
-      alert(err.response?.data?.error || "Terjadi kesalahan saat mengedit log.");
+      alert(
+        err.response?.data?.error || "Terjadi kesalahan saat mengedit log.",
+      );
     }
   };
 
@@ -172,7 +179,7 @@ export default function LogList({ refreshKey, onActivitySuccess }) {
           </div>
 
           {/* 🔹 HANYA ADMIN YANG BISA EXPORT */}
-          {userRole === 'admin' && (
+          {userRole === "admin" && (
             <button
               onClick={handleExport}
               disabled={loading}
@@ -184,7 +191,7 @@ export default function LogList({ refreshKey, onActivitySuccess }) {
         </div>
 
         {/* 🔹 HANYA ADMIN YANG BISA HAPUS LOG HARIAN */}
-        {userRole === 'admin' && (
+        {userRole === "admin" && (
           <button
             onClick={handleDeleteLogs}
             disabled={loading}
@@ -218,13 +225,18 @@ export default function LogList({ refreshKey, onActivitySuccess }) {
               <th className="p-2 text-left">Tujuan</th>
               <th className="p-2 text-left">Jumlah</th>
               {/* 🔹 HANYA ADMIN YANG MELIHAT HEADER AKSI */}
-              {userRole === 'admin' && <th className="p-2 text-center">Aksi</th>}
+              {userRole === "admin" && (
+                <th className="p-2 text-center">Aksi</th>
+              )}
             </tr>
           </thead>
           <tbody>
             {filteredLogs.length === 0 ? (
               <tr>
-                <td colSpan={userRole === 'admin' ? "7" : "6"} className="text-center p-4 text-gray-500">
+                <td
+                  colSpan={userRole === "admin" ? "7" : "6"}
+                  className="text-center p-4 text-gray-500"
+                >
                   Tidak ada log
                 </td>
               </tr>
@@ -238,10 +250,12 @@ export default function LogList({ refreshKey, onActivitySuccess }) {
                   <td className="p-2 capitalize">{log.type}</td>
                   <td className="p-2 capitalize">{log.asal || "-"}</td>
                   <td className="p-2 capitalize">{log.tujuan || "-"}</td>
-                  <td className="p-2 font-semibold text-center">{log.jumlah}</td>
-                  
+                  <td className="p-2 font-semibold text-center">
+                    {log.jumlah}
+                  </td>
+
                   {/* 🔹 HANYA ADMIN YANG MELIHAT TOMBOL EDIT & HAPUS */}
-                  {userRole === 'admin' && (
+                  {userRole === "admin" && (
                     <td className="p-2 flex gap-2 justify-center">
                       <button
                         onClick={() => openEditModal(log)}
@@ -267,7 +281,9 @@ export default function LogList({ refreshKey, onActivitySuccess }) {
       {/* Mobile Card List */}
       <div className="sm:hidden space-y-3">
         {filteredLogs.length === 0 ? (
-          <div className="text-center text-gray-500 py-4 bg-white rounded shadow-sm">Tidak ada log</div>
+          <div className="text-center text-gray-500 py-4 bg-white rounded shadow-sm">
+            Tidak ada log
+          </div>
         ) : (
           filteredLogs.map((log) => (
             <div
@@ -288,11 +304,13 @@ export default function LogList({ refreshKey, onActivitySuccess }) {
                   <span>Asal: {log.asal || "-"}</span>
                   <span>Tujuan: {log.tujuan || "-"}</span>
                 </div>
-                <p className="text-sm text-gray-800 font-semibold mt-1">Jumlah: {log.jumlah}</p>
+                <p className="text-sm text-gray-800 font-semibold mt-1">
+                  Jumlah: {log.jumlah}
+                </p>
               </div>
-              
+
               {/* 🔹 HANYA ADMIN YANG MELIHAT TOMBOL EDIT & HAPUS DI MOBILE */}
-              {userRole === 'admin' && (
+              {userRole === "admin" && (
                 <div className="flex gap-3 mt-3 border-t pt-3">
                   <button
                     onClick={() => openEditModal(log)}
@@ -317,9 +335,13 @@ export default function LogList({ refreshKey, onActivitySuccess }) {
       {editLog && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center p-4 z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm">
-            <h2 className="text-lg font-bold mb-4">Edit Log: {editLog.itemName}</h2>
+            <h2 className="text-lg font-bold mb-4">
+              Edit Log: {editLog.itemName}
+            </h2>
             <div className="mb-4">
-              <label className="block mb-1 font-semibold text-gray-700">Jumlah Aktual:</label>
+              <label className="block mb-1 font-semibold text-gray-700">
+                Jumlah Aktual:
+              </label>
               <input
                 type="number"
                 value={editJumlah}

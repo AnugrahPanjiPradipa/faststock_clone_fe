@@ -12,11 +12,14 @@ export default function TransferForm({ item, onActivitySuccess }) {
       const token = localStorage.getItem("token");
 
       try {
-        const response = await fetch("http://localhost:5000/api/gerai", {
-          headers: {
-            Authorization: `Bearer ${token}`, // Mengirim token agar lolos middleware protect
+        const response = await fetch(
+          "https://faststock-clone-be.vercel.app/api/gerai",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`, // Mengirim token agar lolos middleware protect
+            },
           },
-        });
+        );
         const result = await response.json();
 
         if (Array.isArray(result)) {
@@ -42,7 +45,7 @@ export default function TransferForm({ item, onActivitySuccess }) {
 
     try {
       await axios.put(
-        `http://localhost:5000/api/items/process/${item._id}`, // 🔹 Mengarah ke route terpusat baru
+        `https://faststock-clone-be.vercel.app/api/items/process/${item._id}`, // 🔹 Mengarah ke route terpusat baru
         {
           actionType: "transfer", // 🔹 Properti wajib untuk dibaca di switch/if Express
           jumlah: parseInt(jumlah),

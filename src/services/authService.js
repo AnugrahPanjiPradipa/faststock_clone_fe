@@ -1,7 +1,7 @@
 // src/services/authService.js
 import axios from "axios";
 
-const API_URL = "http://localhost:5000/api/auth"; // Sesuaikan dengan port backend Anda
+const API_URL = "https://faststock-clone-be.vercel.app/api/auth"; // Sesuaikan dengan port backend Anda
 
 export const register = async (username, email, password, role) => {
   try {

@@ -13,7 +13,7 @@ export default function PenjualanForm({ item, onSuccess, onActivitySuccess }) {
 
     try {
       await axios.put(
-        `http://localhost:5000/api/items/process/${item._id}`, // Endpoint diubah
+        `https://faststock-clone-be.vercel.app/api/items/process/${item._id}`, // Endpoint diubah
         {
           actionType: "penjualan", // Properti tambahan wajib
           jumlah: parseInt(jumlah),

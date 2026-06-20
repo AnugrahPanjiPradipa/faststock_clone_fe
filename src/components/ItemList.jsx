@@ -28,7 +28,7 @@ export default function ItemList({ onActivitySuccess, refreshTrigger }) {
 
   const fetchItems = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/items", {
+      const res = await axios.get("https://faststock-clone-be.vercel.app/api/items", {
         params: {
           page: currentPage,
           limit: itemsPerPage,
@@ -57,7 +57,7 @@ export default function ItemList({ onActivitySuccess, refreshTrigger }) {
 
   useEffect(() => {
     const fetchData = async () => {
-      const response = await fetch("http://localhost:5000/api/gerai", {
+      const response = await fetch("https://faststock-clone-be.vercel.app/api/gerai", {
         headers: authHeaders, // 🔹 Tambahkan token juga di fetch biasa
       });
       const result = await response.json();
@@ -76,7 +76,7 @@ export default function ItemList({ onActivitySuccess, refreshTrigger }) {
     if (!confirm("Yakin ingin menghapus item ini?")) return;
     try {
       await axios.delete(
-        `http://localhost:5000/api/items/${id}`,
+        `https://faststock-clone-be.vercel.app/api/items/${id}`,
         { headers: authHeaders }, // 🔹 Tambahkan token
       );
       onActivitySuccess?.(); // 🔹 trigger parent refresh ItemList + LogList
@@ -96,7 +96,7 @@ export default function ItemList({ onActivitySuccess, refreshTrigger }) {
       };
 
       await axios.put(
-        `http://localhost:5000/api/items/${editItem._id}`,
+        `https://faststock-clone-be.vercel.app/api/items/${editItem._id}`,
         payload,
         {
           headers: {

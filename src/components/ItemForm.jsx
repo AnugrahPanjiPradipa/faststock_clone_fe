@@ -17,7 +17,7 @@ export default function ItemForm({ onSuccess, onActivitySuccess }) {
   useEffect(() => {
     const fetchData = async () => {
       const response = await fetch(
-        "http://localhost:5000/api/gerai",
+        "https://faststock-clone-be.vercel.app/api/gerai",
       );
       const result = await response.json();
 
@@ -42,15 +42,15 @@ export default function ItemForm({ onSuccess, onActivitySuccess }) {
     const payload = {
       name: form.name,
       stockGudang: Number(form.stockGudang),
-      asal: selectedGerai, 
+      asal: selectedGerai,
     };
 
     try {
       await axios.post(
-        "http://localhost:5000/api/items",
+        "https://faststock-clone-be.vercel.app/api/items",
         payload,
         {
-          headers: { "Content-Type": "application/json" }, 
+          headers: { "Content-Type": "application/json" },
         },
       );
 
